@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard | Paw Spa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #fffaf5;
+        }
+
+        .navbar {
+            background-color: #ffb6b9;
+        }
+
+        .navbar-brand, .nav-link {
+            color: white !important;
+        }
+
+        .dashboard-container {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .status-filter {
+            margin-bottom: 2rem;
+        }
+
+        .booking-card {
+            background-color: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 5px solid #ffd700;
+        }
+
+        .booking-card.approved {
+            border-left-color: #28a745;
+        }
+
+        .booking-card.declined {
+            border-left-color: #dc3545;
+        }
+
+        .booking-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background-color: #ffd700;
+            color: #000;
+        }
+
+        .status-approved {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .status-declined {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+
+        .btn-approve {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+        }
+
+        .btn-decline {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+        }
+
+        .btn-approve:hover, .btn-decline:hover {
+            color: white;
+            opacity: 0.9;
+        }
+
+        .booking-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .info-group {
+            margin-bottom: 0.5rem;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #666;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 15px;
+            margin-top: 2rem;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-title {
+            color: #ff6f61;
+            margin: 0;
+        }
+
+        .filter-buttons .btn {
+            border-radius: 20px;
+            padding: 0.5rem 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/admin-dashboard">🐾 Paw Spa Admin</a>
+            <div class="navbar-nav ms-auto">
+                <span class="nav-link">Welcome, {{ request.user.username }}!</span>
+                <a class="nav-link" href="{% url 'admin_logout' %}">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h2 class="dashboard-title">📋 Scheduled Appointments</h2>
+            <div class="filter-buttons">
+                <a href="?status=all" class="btn {% if status == 'all' %}btn-dark{% else %}btn-outline-dark{% endif %}">All</a>
+                <a href="?status=pending" class="btn {% if status == 'pending' %}btn-warning{% else %}btn-outline-warning{% endif %}">Pending</a>
+                <a href="?status=approved" class="btn {% if status == 'approved' %}btn-success{% else %}btn-outline-success{% endif %}">Approved</a>
+                <a href="?status=declined" class="btn {% if status == 'declined' %}btn-danger{% else %}btn-outline-danger{% endif %}">Declined</a>
+            </div>
+        </div>
+
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        {% if bookings %}
+            {% for booking in bookings %}
+            <div class="booking-card {% if booking.status == 'approved' %}approved{% elif booking.status == 'declined' %}declined{% endif %}">
+                <div class="booking-header">
+                    <h5 class="mb-0">Booking #{{ booking.id }}</h5>
+                    <span class="status-badge status-{{ booking.status }}">
+                        {{ booking.status|title }}
+                    </span>
+                </div>
+                <div class="booking-info">
+                    <div class="pet-info">
+                        <div class="info-group">
+                            <div class="info-label">Pet Name</div>
+                            <div>{{ booking.pet_name }}</div>
+                        </div>
+                        <div class="info-group">
+                            <div class="info-label">Pet Type</div>
+                            <div>{{ booking.pet_type }}</div>
+                        </div>
+                        <div class="info-group">
+                            <div class="info-label">Service</div>
+                            <div>{{ booking.service }}</div>
+                        </div>
+                    </div>
+                    <div class="owner-info">
+                        <div class="info-group">
+                            <div class="info-label">Owner</div>
+                            <div>{{ booking.owner_name }}</div>
+                        </div>
+                        <div class="info-group">
+                            <div class="info-label">Email</div>
+                            <div>{{ booking.email }}</div>
+                        </div>
+                        <div class="info-group">
+                            <div class="info-label">Phone</div>
+                            <div>{{ booking.phone_number }}</div>
+                        </div>
+                        <div class="info-group">
+                            <div class="info-label">Date</div>
+                            <div>{{ booking.date }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% if booking.status == 'pending' %}
+                <div class="action-buttons">
+                    <form method="POST" action="{% url 'update_booking_status' booking.id 'approved' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-approve">✓ Approve</button>
+                    </form>
+                    <form method="POST" action="{% url 'update_booking_status' booking.id 'declined' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-decline">✕ Decline</button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <h4>No bookings found</h4>
+                <p class="text-muted">There are no appointments matching the selected filter.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 
+</html> 
